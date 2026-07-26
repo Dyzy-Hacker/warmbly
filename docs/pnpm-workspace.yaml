@@ -13,3 +13,6 @@ overrides:
   js-yaml: ^4.3.0
   # Clear the libvips CVEs inherited by sharp (fixed in 0.35.0).
   sharp: ^0.35.0
+  # next pins postcss to an exact 8.4.31, which carries the sourceMappingURL
+  # file-read / path-traversal advisories (CVE-2026-45623, GHSA-r28c-9q8g-f849).
+  postcss: ^8.5.23
