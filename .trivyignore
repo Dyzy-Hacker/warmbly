@@ -33,3 +33,10 @@ CVE-2026-33327
 CVE-2026-33328
 CVE-2026-35590
 CVE-2026-35591
+
+# react-router 7.x — RSC-mode CSRF bypass, only fixed in 8.3.0 (the advisory
+# range covers all of 7.12+). web/ and admin/ are client-side Vite SPAs using
+# react-router-dom in the browser; there is no react-router server, no RSC
+# mode, and no server actions, so the vulnerable path does not exist here.
+# Re-evaluate when we move either app to react-router 8.
+GHSA-qwww-vcr4-c8h2
