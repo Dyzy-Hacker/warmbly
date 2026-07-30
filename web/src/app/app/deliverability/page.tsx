@@ -20,6 +20,7 @@ import {
     SelectButton,
 } from "@/components/ui/popover-menu";
 import useDeliverability from "@/lib/api/hooks/app/analytics/useDeliverability";
+import AdvisorSummaryBar from "@/components/app/advisor/AdvisorSummaryBar";
 import type { DeliverabilityBand, ProviderPlacement, WarmupDomainPlacement } from "@/lib/api/models/app/analytics/Deliverability";
 
 type Range = "7d" | "30d" | "90d";
@@ -196,6 +197,15 @@ export default function DeliverabilityPage() {
                 />
                 <Stat label="Suppressed" value={num(d?.suppressed_recipients)} sub="active suppressions" last />
             </StatStrip>
+
+            {/* The Advisor's deliverability findings, above the numbers that
+                produced them. Absent entirely when there is nothing wrong. */}
+            <AdvisorSummaryBar
+                surface="deliverability"
+                noun="mailbox"
+                nounPlural="mailboxes"
+                className="mx-5 mt-3"
+            />
 
             {q.isError ? (
                 <PageBody>
