@@ -939,7 +939,7 @@ func main() {
 
 		eventsPublisher := events.NewPublisher(bus, s3, codecImpl, cipherService)
 
-		oauth2Cfg := config.LoadOauth2(apiCfg.Hostname)
+		oauth2Cfg := config.LoadOauth2(config.MailboxOAuthBaseURL())
 		emailService = email.NewServiceWithWorker(
 			emailRepostory,
 			cipherService,

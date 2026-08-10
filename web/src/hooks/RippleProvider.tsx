@@ -12,12 +12,17 @@ function useRipple() {
 
     type RippleElement = HTMLElement & { _ripple?: HTMLSpanElement | null };
 
+    let activeTarget: RippleElement | null = null;
+
+    const findRippleTarget = (eventTarget: EventTarget | null): RippleElement | null => {
+      if (!(eventTarget instanceof Element)) return null;
+      return eventTarget.closest<HTMLElement>('.ripple') as RippleElement | null;
+    };
+
     const down = (e: MouseEvent) => {
-      let target = e.target as HTMLElement;
-      while (target && !target.classList.contains('ripple')) {
-        target = target.parentElement as HTMLElement;
-      }
+      const target = findRippleTarget(e.target);
       if (!target) return;
+      activeTarget = target;
 
       const rect = target.getBoundingClientRect();
       const ripple = document.createElement('span');
@@ -41,11 +46,8 @@ function useRipple() {
     };
 
     const up = (e: MouseEvent) => {
-      let target = e.target as HTMLElement;
-      while (target && !target.classList.contains('ripple')) {
-        target = target.parentElement as HTMLElement;
-      }
-      const rippleData = (target as RippleElement)?._ripple;
+      const target = activeTarget ?? findRippleTarget(e.target);
+      const rippleData = target?._ripple;
       if (target && rippleData) {
         rippleData.classList.add('out');
 
@@ -53,8 +55,9 @@ function useRipple() {
           rippleData.remove()
         }, 300);
 
-        (target as RippleElement)._ripple = null;
+        target._ripple = null;
       }
+      activeTarget = null;
     };
 
     document.addEventListener('mousedown', down);

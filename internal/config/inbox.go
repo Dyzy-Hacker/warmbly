@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"strings"
 
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -11,6 +12,17 @@ import (
 type Oauth2Inbox struct {
 	Google  *oauth2.Config
 	Outlook *oauth2.Config
+}
+
+// MailboxOAuthBaseURL returns the browser-facing API origin used for mailbox
+// OAuth callbacks. API_HOST is a listen address (often 0.0.0.0:8080), so it
+// must not be used as a provider redirect URI.
+func MailboxOAuthBaseURL() string {
+	baseURL := strings.TrimRight(strings.TrimSpace(os.Getenv("API_PUBLIC_URL")), "/")
+	if baseURL == "" {
+		return "http://localhost:8080"
+	}
+	return baseURL
 }
 
 func GoogleOauth2Inbox(baseURL string) *oauth2.Config {

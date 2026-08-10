@@ -401,6 +401,10 @@ KMS_KEY_DEV := Xr0JA7gqF2POy29a7MRByyqddivTNt8WOyKsOXklazk=
 # run natively on the same host, so they share this path).
 BLOB_FS_ROOT_DEV := /tmp/warmbly-blobs
 
+# Native dev services run outside Compose, so source the same root dotenv file
+# that Docker Compose uses. set -a exports every assignment to Go child processes.
+DEV_DOTENV := set -a; if [ -f .env ]; then . ./.env; fi; set +a;
+
 GO_DEV_ENV := \
 	APP_ENV=dev \
 	AWS_CONFIG_ENABLED=false \
@@ -440,6 +444,7 @@ WORKER_DEV_ENV := \
 # API server on :8080. Applies the embedded migrations on boot against
 # the docker postgres.
 backend:
+	$(DEV_DOTENV) \
 	$(GO_DEV_ENV) \
 	$(AI_DEV_ENV) \
 	API_HOST=0.0.0.0:8080 \
@@ -471,6 +476,7 @@ consumer:
 # endpoint (the prod `http` provider, no worker DB), so `make backend`
 # must be running and INTERNAL_API_TOKEN must match.
 worker:
+	$(DEV_DOTENV) \
 	$(WORKER_DEV_ENV) \
 	WORKER_ID=10c8f5e4-1c39-5b2a-9c8b-3d2f0a8b1a01 \
 	WORKER_TIER=shared \

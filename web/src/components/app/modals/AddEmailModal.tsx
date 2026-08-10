@@ -33,7 +33,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Google, Outlook, Logo } from "@/components/svg";
 import { TextInput } from "@/components/ui/field";
 import { useUserProfile } from "@/hooks/context/user";
-import { APP_URL } from "@/lib/information";
+import { API_URL } from "@/lib/information";
 import type { AppError } from "@/lib/api/client/normalizeError";
 import buildError from "@/lib/helper/buildError";
 import addEmail from "@/lib/api/client/app/emails/addEmail";
@@ -87,20 +87,20 @@ export default function AddEmailModal() {
         }
     }, [user.addEmail]);
 
-    // Listen for the OAuth popup's postMessage. We only honour messages
-    // whose origin matches APP_URL and whose state matches the one we
-    // issued — protects against replay and stray posts.
+    // The callback page is served by the API, not by the SPA. Only honour
+    // messages from that callback origin whose provider and state match the
+    // request we issued — protects against spoofing, replay, and stray posts.
     React.useEffect(() => {
         function onMessage(event: MessageEvent) {
-            const expectedOrigin = APP_URL || window.location.origin;
-            if (event.origin && expectedOrigin && event.origin !== expectedOrigin && event.origin !== window.location.origin) {
+            const callbackOrigin = new URL(API_URL || window.location.origin, window.location.href).origin;
+            if (event.origin !== callbackOrigin) {
                 return;
             }
             const data = event.data as OAuthCallbackMessage | undefined;
             if (!data || data.type !== "email_oauth_callback") return;
 
             const expected = pendingState.current;
-            if (!expected || expected.state !== data.state) return;
+            if (!expected || expected.provider !== data.provider || expected.state !== data.state) return;
             pendingState.current = null;
 
             if (data.error || !data.code) {

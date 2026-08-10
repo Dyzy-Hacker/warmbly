@@ -12,6 +12,20 @@ import (
 	"github.com/warmbly/warmbly/internal/models"
 )
 
+const (
+	defaultMaxRequestBytes       int64 = 10 << 20
+	contactImportMaxRequestBytes int64 = 51 << 20
+)
+
+func requestBodyLimit(path string) int64 {
+	switch path {
+	case "/v1/contacts/import/preview", "/v1/contacts/import/commit":
+		return contactImportMaxRequestBytes
+	default:
+		return defaultMaxRequestBytes
+	}
+}
+
 func Run(
 	h *handler.Handler,
 	m *middleware.Handler,
@@ -164,9 +178,12 @@ func Run(
 
 	r.Use(cors.New(corsConfig))
 
-	// Limit request body size to 10MB to prevent OOM
+	// Keep ordinary API requests capped at 10 MiB, but honor the documented
+	// 50 MiB contact-import limit. MaxBytesReader counts multipart framing too,
+	// so import requests get a small allowance above the file-size limit; the
+	// handler separately enforces the file itself at exactly 50 MiB.
 	r.Use(func(c *gin.Context) {
-		c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, 10<<20)
+		c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, requestBodyLimit(c.Request.URL.Path))
 		c.Next()
 	})
 

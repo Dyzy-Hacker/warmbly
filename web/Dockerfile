@@ -20,5 +20,8 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 RUN nginx -t
 COPY --from=build /app/dist /usr/share/nginx/html
 COPY docker-entrypoint.sh /docker-entrypoint.d/40-warmbly-config.sh
-RUN chmod +x /docker-entrypoint.d/40-warmbly-config.sh
+# Windows/WSL checkouts may use CRLF; normalize the hook so /bin/sh can run it.
+RUN tr -d '\015' < /docker-entrypoint.d/40-warmbly-config.sh > /tmp/warmbly-config.sh && \
+    mv /tmp/warmbly-config.sh /docker-entrypoint.d/40-warmbly-config.sh && \
+    chmod +x /docker-entrypoint.d/40-warmbly-config.sh
 EXPOSE 80

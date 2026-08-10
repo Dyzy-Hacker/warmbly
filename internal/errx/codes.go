@@ -12,6 +12,7 @@ const (
 	NotFound           Code = http.StatusNotFound
 	Conflict           Code = http.StatusConflict
 	Unprocessable      Code = http.StatusUnprocessableEntity
+	PayloadTooLarge    Code = http.StatusRequestEntityTooLarge
 	TooManyRequests    Code = http.StatusTooManyRequests
 	Internal           Code = http.StatusInternalServerError
 	NotImplemented     Code = http.StatusNotImplemented
@@ -26,6 +27,7 @@ var codeToHTTP = map[Code]int{
 	NotFound:           http.StatusNotFound,
 	Conflict:           http.StatusConflict,
 	Unprocessable:      http.StatusUnprocessableEntity,
+	PayloadTooLarge:    http.StatusRequestEntityTooLarge,
 	TooManyRequests:    http.StatusTooManyRequests,
 	Internal:           http.StatusInternalServerError,
 	NotImplemented:     http.StatusNotImplemented,
@@ -40,6 +42,7 @@ var codeToString = map[Code]string{
 	NotFound:           "Not Found",
 	Conflict:           "Conflict",
 	Unprocessable:      "Unprocessable",
+	PayloadTooLarge:    "Payload Too Large",
 	TooManyRequests:    "Too Many Requests",
 	Internal:           "Internal Server Error",
 	NotImplemented:     "Not Implemented",
@@ -55,6 +58,7 @@ var codeToIdentifier = map[Code]string{
 	NotFound:           "not_found",
 	Conflict:           "conflict",
 	Unprocessable:      "unprocessable",
+	PayloadTooLarge:    "payload_too_large",
 	TooManyRequests:    "rate_limit_exceeded",
 	Internal:           "internal_error",
 	NotImplemented:     "not_implemented",

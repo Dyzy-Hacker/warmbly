@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -22,6 +23,18 @@ func jsonUnmarshalString(s string, v any) error {
 // rows of typical contact data; the service-level row cap (50k) then
 // truncates whatever's left.
 const maxImportUploadBytes = 50 * 1024 * 1024
+
+// Multipart boundaries and per-part headers count toward the HTTP body but not
+// the file size. Keep bounded headroom so an exact 50 MiB file is accepted.
+const maxImportRequestBytes = maxImportUploadBytes + 1*1024*1024
+
+func importUploadError(err error) *errx.Error {
+	var maxBytesErr *http.MaxBytesError
+	if errors.As(err, &maxBytesErr) {
+		return errx.New(errx.PayloadTooLarge, "contact import files must not exceed 50 MB")
+	}
+	return errx.New(errx.BadRequest, "missing 'file' form field")
+}
 
 // ExportContacts streams CSV/XLSX/JSON. We never buffer the full body
 // in memory if we can help it — the service writes through to
@@ -98,13 +111,17 @@ func (h *Handler) ImportPreviewContacts(c *gin.Context) {
 		return
 	}
 
-	c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, maxImportUploadBytes)
+	c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, maxImportRequestBytes)
 	file, header, err := c.Request.FormFile("file")
 	if err != nil {
-		errx.Handle(c, errx.New(errx.BadRequest, "missing 'file' form field"))
+		errx.Handle(c, importUploadError(err))
 		return
 	}
 	defer file.Close()
+	if header.Size > maxImportUploadBytes {
+		errx.Handle(c, errx.New(errx.PayloadTooLarge, "contact import files must not exceed 50 MB"))
+		return
+	}
 
 	preview, xerr := h.ContactService.ImportPreview(c.Request.Context(), file, header.Filename)
 	if xerr != nil {
@@ -125,13 +142,17 @@ func (h *Handler) ImportCommitContacts(c *gin.Context) {
 		return
 	}
 
-	c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, maxImportUploadBytes)
+	c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, maxImportRequestBytes)
 	file, header, err := c.Request.FormFile("file")
 	if err != nil {
-		errx.Handle(c, errx.New(errx.BadRequest, "missing 'file' form field"))
+		errx.Handle(c, importUploadError(err))
 		return
 	}
 	defer file.Close()
+	if header.Size > maxImportUploadBytes {
+		errx.Handle(c, errx.New(errx.PayloadTooLarge, "contact import files must not exceed 50 MB"))
+		return
+	}
 
 	optsStr := c.Request.FormValue("options")
 	if optsStr == "" {
